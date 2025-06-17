@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Super Maths Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    #question {
+      font-size: 1.8rem;
+      margin: 20px 0;
+    }
+    .btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #fff;
+      color: #000;
+    }
+    #options button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+    }
+    #scoreboard {
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+    #timer {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Super Maths Quiz</h1>
+    <div id="timer">Time Left: <span id="time">60</span> sec</div>
+    <div id="question">Press start to begin!</div>
+    <div id="options"></div>
+    <button class="btn" onclick="startQuiz()">Start</button>
+    <button class="btn" onclick="stopQuiz()">Stop</button>
+    <button class="btn" onclick="restartQuiz()">Restart</button>
+    <div id="scoreboard">Score: <span id="score">0</span></div>
+  </div>
+
+  <audio id="correct-sound" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+  <audio id="wrong-sound" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
+  <audio id="bg-sound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+  <script>
+    const totalQuestions = 500;
+    const questionSet = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 60;
+
+    for (let i = 0; i < totalQuestions; i++) {
+      let a = Math.floor(Math.random() * 100);
+      let b = Math.floor(Math.random() * 100);
+      let op = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
+      let question = `${a} ${op} ${b}`;
+      let answer = Math.round(eval(question));
+      questionSet.push({ question, answer });
+    }
+
+    function startQuiz() {
+      document.getElementById('bg-sound').play();
+      score = 0;
+      timeLeft = 60;
+      currentQuestionIndex = 0;
+      document.getElementById('score').innerText = score;
+      showQuestion();
+      timer = setInterval(updateTimer, 1000);
+    }
+
+    function stopQuiz() {
+      clearInterval(timer);
+      document.getElementById('question').innerText = 'Quiz stopped.';
+      document.getElementById('options').innerHTML = '';
+      document.getElementById('bg-sound').pause();
+    }
+
+    function restartQuiz() {
+      stopQuiz();
+      startQuiz();
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      document.getElementById('time').innerText = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById('question').innerText = `Time's up! Final Score: ${score}`;
+        document.getElementById('options').innerHTML = '';
+        document.getElementById('bg-sound').pause();
+      }
+    }
+
+    function showQuestion() {
+      if (currentQuestionIndex >= totalQuestions) return;
+      let q = questionSet[currentQuestionIndex];
+      document.getElementById('question').innerText = `Q${currentQuestionIndex + 1}: ${q.question}`;
+
+      let correct = q.answer;
+      let options = [correct,
+        correct + Math.floor(Math.random() * 10),
+        correct - Math.floor(Math.random() * 10),
+        correct + Math.floor(Math.random() * 5)
+      ];
+      options = [...new Set(options)].sort(() => Math.random() - 0.5);
+
+      document.getElementById('options').innerHTML = '';
+      options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt, correct, btn);
+        document.getElementById('options').appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, btn) {
+      if (selected === correct) {
+        document.getElementById('correct-sound').play();
+        score++;
+        btn.style.backgroundColor = "green";
+        document.getElementById('score').innerText = score;
+      } else {
+        document.getElementById('wrong-sound').play();
+        btn.style.backgroundColor = "red";
+      }
+      setTimeout(() => {
+        currentQuestionIndex++;
+        showQuestion();
+      }, 600);
+    }
+  </script>
+</body>
+</html>
